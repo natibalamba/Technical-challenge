@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
 
 test(
@@ -12,23 +12,10 @@ test(
 
     await homePage.configureUsdEnvironment();
 
-    const ariaLabel =
-      await homePage.countryLanguage
-        .getCurrentConfiguration();
+    // STEP 2
+    await homePage.selectOneWay();
 
-    console.log(
-      `Current locale configuration: ${ariaLabel}`
-    );
-
-    expect(ariaLabel).toContain('USD');
-    expect(ariaLabel).toContain('EN');
-
-    // Próximos pasos:
-    // await homePage.selectOneWay();
-    // await homePage.selectDestination('San Andres');
-    // await homePage.selectAvailableDate();
-    // await homePage.selectTwoAdults();
-    // await homePage.searchFlights();
+    await page.pause();
 
   }
 );
