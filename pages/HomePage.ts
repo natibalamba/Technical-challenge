@@ -250,13 +250,12 @@ export class HomePage {
   async selectDepartureDate(): Promise<void> {
 
     console.log(
-      'Selecting first available departure date'
+      'Selecting departure date'
     );
 
-    const availableDates =
-      this.page.locator(
-        'button[data-name="dayCell"][aria-disabled="false"]'
-      );
+    const availableDates = this.page.locator(
+      'button[data-name="dayCell"][aria-disabled="false"]'
+    );
 
     const totalDates =
       await availableDates.count();
@@ -274,14 +273,14 @@ export class HomePage {
 
     const selectedDate =
       await availableDates
-        .first()
+        .nth(1)
         .getAttribute('data-date');
 
     console.log(
       `Selected date: ${selectedDate}`
     );
 
-    await availableDates.first().click();
+    await availableDates.nth(1).click();
 
     console.log(
       'Departure date validated'
@@ -383,6 +382,10 @@ export class HomePage {
 
     await this.page.waitForLoadState(
       'networkidle'
+    );
+
+    console.log(
+      `Current URL: ${this.page.url()}`
     );
 
     console.log(
