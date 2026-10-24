@@ -6,8 +6,13 @@ export class HomePage {
 
   readonly countryLanguage: CountryLanguageComponent;
 
+  // Step 2
   readonly oneWayOption: Locator;
   readonly returnField: Locator;
+
+  // Step 3
+  readonly destinationField: Locator;
+  readonly sanAndresOption: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -15,12 +20,28 @@ export class HomePage {
     this.countryLanguage =
       new CountryLanguageComponent(page);
 
+    // Step 2
     this.oneWayOption = page.getByText(
       /one way|solo ida/i
     );
 
     this.returnField = page.getByText(
       /return|regreso|vuelta/i
+    );
+
+    // Step 3
+    this.destinationField = page.getByRole(
+      'combobox',
+      {
+        name: 'Destination',
+      }
+    );
+
+    this.sanAndresOption = page.getByRole(
+      'option',
+      {
+        name: 'San Andres, Colombia ADZ',
+      }
     );
   }
 
@@ -52,70 +73,131 @@ export class HomePage {
 
       await cookieButton.click();
 
-      console.log('Cookie banner accepted');
+      console.log(
+        'Cookie banner accepted'
+      );
     } catch {
-      console.log('Cookie banner not displayed');
+      console.log(
+        'Cookie banner not displayed'
+      );
     }
   }
 
   async configureUsdEnvironment(): Promise<void> {
     await this.acceptCookiesIfPresent();
 
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(
+      2000
+    );
 
-    await this.countryLanguage.changeToUnitedStates();
+    await this.countryLanguage
+      .changeToUnitedStates();
   }
 
   /**
- * STEP 2
- * Select One Way
- */
-async selectOneWay(): Promise<void> {
+   * STEP 2
+   * Select One Way
+   */
+  async selectOneWay(): Promise<void> {
+    console.log(
+      'Selecting One Way'
+    );
 
-  console.log('Selecting One Way');
+    await expect(
+      this.oneWayOption
+    ).toBeVisible();
 
-  await expect(
-    this.oneWayOption
-  ).toBeVisible();
+    await this.oneWayOption.click();
 
-  await this.oneWayOption.click();
+    console.log(
+      'One Way clicked'
+    );
 
-  console.log('One Way clicked');
+    await this.validateOneWaySelected();
 
-  await this.validateOneWaySelected();
+    await this.validateReturnFieldNotDisplayed();
+  }
 
-  await this.validateReturnFieldNotDisplayed();
-}
+  async validateOneWaySelected(): Promise<void> {
+    const text =
+      await this.oneWayOption.textContent();
 
-async validateOneWaySelected(): Promise<void> {
+    console.log(
+      `Selected trip type: ${text}`
+    );
 
-  const text =
-    await this.oneWayOption.textContent();
+    expect(
+      ['One way', 'Solo ida']
+    ).toContain(
+      text?.trim()
+    );
 
-  console.log(
-    `Selected trip type: ${text}`
-  );
+    console.log(
+      'One Way validated'
+    );
+  }
 
-  expect(
-    ['One way', 'Solo ida']
-  ).toContain(
-    text?.trim()
-  );
+  async validateReturnFieldNotDisplayed(): Promise<void> {
+    await expect(
+      this.returnField
+    ).toHaveCount(0);
 
-  console.log(
-    'One Way validated'
-  );
-}
+    console.log(
+      'Return field validation completed'
+    );
+  }
 
-async validateReturnFieldNotDisplayed(): Promise<void> {
+  /**
+   * STEP 3
+   * Select destination
+   */
+  async selectDestination(): Promise<void> {
+    console.log(
+      'Selecting destination ADZ'
+    );
 
-  await expect(
-    this.returnField
-  ).toHaveCount(0);
+    await expect(
+      this.destinationField
+    ).toBeVisible();
 
-  console.log(
-    'Return field validation completed'
-  );
-}
+    await this.destinationField.click();
 
+    await this.destinationField.fill(
+      'San Andres'
+    );
+
+    await expect(
+      this.sanAndresOption
+    ).toBeVisible();
+
+    await this.sanAndresOption.click();
+
+    await this.validateDestinationSelected();
+  }
+
+  async validateDestinationSelected(): Promise<void> {
+
+    const destinationValue =
+      await this.destinationField.inputValue();
+
+    console.log(
+      `Destination field value: ${destinationValue}`
+    );
+
+    expect(
+      destinationValue.toLowerCase()
+    ).toContain(
+      'san andres'
+    );
+
+    expect(
+      destinationValue.toUpperCase()
+    ).toContain(
+      'ADZ'
+    );
+
+    console.log(
+      'Destination validated'
+    );
+  }
 }

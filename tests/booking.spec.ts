@@ -12,10 +12,12 @@ test(
 
     await homePage.configureUsdEnvironment();
 
-    // STEP 2
+    // Step 2
     await homePage.selectOneWay();
 
-    await page.pause();
+    // Step 3
+    await homePage.selectDestination();
 
+    await page.pause();
   }
 );

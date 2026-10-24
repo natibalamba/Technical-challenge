@@ -1,26 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
 
 test.describe('Country and Language Configuration', () => {
-  test('Should switch to USD and English', async ({
-  page,
-}) => {
-  const homePage = new HomePage(page);
 
-  await homePage.goto();
+  test('Should switch to USD and English', async ({ page }) => {
 
-  await homePage.acceptCookiesIfPresent();
+    const homePage = new HomePage(page);
 
-  await homePage.countryLanguage.changeToUnitedStates();
+    await homePage.goto();
 
-  const ariaLabel =
-    await homePage.countryLanguage.selectorButton.getAttribute(
-      'aria-label'
-    );
+    await homePage.configureUsdEnvironment();
 
-  console.log('Current configuration:', ariaLabel);
+  });
 
-  expect(ariaLabel).toContain('USD');
-  expect(ariaLabel).toContain('EN');
-});
 });

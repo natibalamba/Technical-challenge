@@ -1,5 +1,3 @@
-// components/CountryLanguageComponent.ts
-
 import { expect, Locator, Page } from '@playwright/test';
 
 export class CountryLanguageComponent {
@@ -9,8 +7,11 @@ export class CountryLanguageComponent {
   constructor(page: Page) {
     this.page = page;
 
-    this.selectorButton = page.locator(
-      'button[aria-label*="idioma"], button[aria-label*="language"]'
+    this.selectorButton = page.getByRole(
+      'button',
+      {
+        name: /seleccionar país e idioma|select country and language/i
+      }
     );
   }
 
