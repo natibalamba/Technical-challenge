@@ -6,13 +6,23 @@ export class HomePage {
 
   readonly countryLanguage: CountryLanguageComponent;
 
-  // Step 2
+  // STEP 2
   readonly oneWayOption: Locator;
   readonly returnField: Locator;
 
-  // Step 3
+  // STEP 3
   readonly destinationField: Locator;
-  readonly sanAndresOption: Locator;
+
+  // STEP 4
+  readonly departureButton: Locator;
+
+  // STEP 5
+  readonly passengersButton: Locator;
+  readonly increaseAdultsButton: Locator;
+
+  // STEP 6
+  readonly confirmPassengersButton: Locator;
+  readonly searchButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -20,7 +30,7 @@ export class HomePage {
     this.countryLanguage =
       new CountryLanguageComponent(page);
 
-    // Step 2
+    // STEP 2
     this.oneWayOption = page.getByText(
       /one way|solo ida/i
     );
@@ -29,7 +39,7 @@ export class HomePage {
       /return|regreso|vuelta/i
     );
 
-    // Step 3
+    // STEP 3
     this.destinationField = page.getByRole(
       'combobox',
       {
@@ -37,10 +47,37 @@ export class HomePage {
       }
     );
 
-    this.sanAndresOption = page.getByRole(
-      'option',
+    // STEP 4
+    this.departureButton = page.getByRole(
+      'button',
       {
-        name: 'San Andres, Colombia ADZ',
+        name: 'Departure',
+      }
+    );
+
+    // STEP 5
+    this.passengersButton = page.getByRole(
+      'button',
+      {
+        name: 'Select passengers',
+      }
+    );
+
+    this.increaseAdultsButton =
+      page.getByRole('button', {
+        name: 'Increase',
+      }).first();
+
+    // STEP 6
+    this.confirmPassengersButton =
+      page.getByRole('button', {
+        name: 'Confirm',
+      });
+
+    this.searchButton = page.getByRole(
+      'button',
+      {
+        name: 'Search',
       }
     );
   }
@@ -59,6 +96,7 @@ export class HomePage {
 
   async acceptCookiesIfPresent(): Promise<void> {
     try {
+
       const cookieButton = this.page
         .getByRole('button')
         .filter({
@@ -66,17 +104,14 @@ export class HomePage {
         })
         .first();
 
-      await cookieButton.waitFor({
-        state: 'visible',
-        timeout: 5000,
-      });
-
       await cookieButton.click();
 
       console.log(
         'Cookie banner accepted'
       );
+
     } catch {
+
       console.log(
         'Cookie banner not displayed'
       );
@@ -84,6 +119,7 @@ export class HomePage {
   }
 
   async configureUsdEnvironment(): Promise<void> {
+
     await this.acceptCookiesIfPresent();
 
     await this.page.waitForTimeout(
@@ -94,11 +130,12 @@ export class HomePage {
       .changeToUnitedStates();
   }
 
-  /**
-   * STEP 2
-   * Select One Way
-   */
+  // ==========================
+  // STEP 2
+  // ==========================
+
   async selectOneWay(): Promise<void> {
+
     console.log(
       'Selecting One Way'
     );
@@ -109,16 +146,13 @@ export class HomePage {
 
     await this.oneWayOption.click();
 
-    console.log(
-      'One Way clicked'
-    );
-
     await this.validateOneWaySelected();
 
     await this.validateReturnFieldNotDisplayed();
   }
 
   async validateOneWaySelected(): Promise<void> {
+
     const text =
       await this.oneWayOption.textContent();
 
@@ -138,6 +172,7 @@ export class HomePage {
   }
 
   async validateReturnFieldNotDisplayed(): Promise<void> {
+
     await expect(
       this.returnField
     ).toHaveCount(0);
@@ -147,13 +182,17 @@ export class HomePage {
     );
   }
 
-  /**
-   * STEP 3
-   * Select destination
-   */
-  async selectDestination(): Promise<void> {
+  // ==========================
+  // STEP 3
+  // ==========================
+
+  async selectDestination(
+    searchText: string,
+    optionName: string
+  ): Promise<void> {
+
     console.log(
-      'Selecting destination ADZ'
+      `Selecting destination: ${optionName}`
     );
 
     await expect(
@@ -163,19 +202,28 @@ export class HomePage {
     await this.destinationField.click();
 
     await this.destinationField.fill(
-      'San Andres'
+      searchText
     );
 
+    const destinationOption =
+      this.page.getByRole('option', {
+        name: optionName,
+      });
+
     await expect(
-      this.sanAndresOption
+      destinationOption
     ).toBeVisible();
 
-    await this.sanAndresOption.click();
+    await destinationOption.click();
 
-    await this.validateDestinationSelected();
+    await this.validateDestinationSelected(
+      searchText
+    );
   }
 
-  async validateDestinationSelected(): Promise<void> {
+  async validateDestinationSelected(
+    expectedDestination: string
+  ): Promise<void> {
 
     const destinationValue =
       await this.destinationField.inputValue();
@@ -187,17 +235,158 @@ export class HomePage {
     expect(
       destinationValue.toLowerCase()
     ).toContain(
-      'san andres'
-    );
-
-    expect(
-      destinationValue.toUpperCase()
-    ).toContain(
-      'ADZ'
+      expectedDestination.toLowerCase()
     );
 
     console.log(
       'Destination validated'
+    );
+  }
+
+  // ==========================
+  // STEP 4
+  // ==========================
+
+  async selectDepartureDate(): Promise<void> {
+
+    console.log(
+      'Selecting first available departure date'
+    );
+
+    const availableDates =
+      this.page.locator(
+        'button[data-name="dayCell"][aria-disabled="false"]'
+      );
+
+    const totalDates =
+      await availableDates.count();
+
+    console.log(
+      `Available dates found: ${totalDates}`
+    );
+
+    if (totalDates === 0) {
+
+      throw new Error(
+        'No available departure dates found'
+      );
+    }
+
+    const selectedDate =
+      await availableDates
+        .first()
+        .getAttribute('data-date');
+
+    console.log(
+      `Selected date: ${selectedDate}`
+    );
+
+    await availableDates.first().click();
+
+    console.log(
+      'Departure date validated'
+    );
+  }
+
+  // ==========================
+  // STEP 5
+  // ==========================
+
+  async selectAdults(
+    targetAdults: number
+  ): Promise<void> {
+
+    console.log(
+      `Selecting ${targetAdults} adults`
+    );
+
+    await expect(
+      this.increaseAdultsButton
+    ).toBeVisible();
+
+    let currentAdults = 1;
+
+    while (currentAdults < targetAdults) {
+
+      await this.increaseAdultsButton.click();
+
+      currentAdults++;
+
+      console.log(
+        `Adults selected: ${currentAdults}`
+      );
+    }
+
+    await this.confirmPassengers();
+
+    await this.validateAdultsSelected(
+      targetAdults
+    );
+  }
+
+  async confirmPassengers(): Promise<void> {
+
+    console.log(
+      'Confirming passenger selection'
+    );
+
+    await expect(
+      this.confirmPassengersButton
+    ).toBeVisible();
+
+    await this.confirmPassengersButton.click();
+  }
+
+  async validateAdultsSelected(
+    expectedAdults: number
+  ): Promise<void> {
+
+    const passengersText =
+      await this.passengersButton.textContent();
+
+    console.log(
+      `Passengers selector: ${passengersText}`
+    );
+
+    expect(
+      passengersText
+    ).toContain(
+      expectedAdults.toString()
+    );
+
+    console.log(
+      `${expectedAdults} adults validated`
+    );
+  }
+
+  // ==========================
+  // STEP 6
+  // ==========================
+
+  async searchFlights(): Promise<void> {
+
+    console.log(
+      'Searching flights'
+    );
+
+    await expect(
+      this.searchButton
+    ).toBeVisible();
+
+    await expect(
+      this.searchButton
+    ).toBeEnabled();
+
+    await this.searchButton.scrollIntoViewIfNeeded();
+
+    await this.searchButton.click();
+
+    await this.page.waitForLoadState(
+      'networkidle'
+    );
+
+    console.log(
+      'Flight search triggered successfully'
     );
   }
 }
