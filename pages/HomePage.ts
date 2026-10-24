@@ -3,24 +3,12 @@ import { CountryLanguageComponent } from '../components/CountryLanguageComponent
 
 export class HomePage {
   readonly page: Page;
-
   readonly countryLanguage: CountryLanguageComponent;
-
-  // STEP 2
   readonly oneWayOption: Locator;
   readonly returnField: Locator;
-
-  // STEP 3
   readonly destinationField: Locator;
-
-  // STEP 4
-  readonly departureButton: Locator;
-
-  // STEP 5
   readonly passengersButton: Locator;
   readonly increaseAdultsButton: Locator;
-
-  // STEP 6
   readonly confirmPassengersButton: Locator;
   readonly searchButton: Locator;
 
@@ -30,56 +18,36 @@ export class HomePage {
     this.countryLanguage =
       new CountryLanguageComponent(page);
 
-    // STEP 2
-    this.oneWayOption = page.getByText(
-      /one way|solo ida/i
-    );
+    this.oneWayOption =
+      page.getByText(/one way|solo ida/i);
 
-    this.returnField = page.getByText(
-      /return|regreso|vuelta/i
-    );
+    this.returnField =
+      page.getByText(/return|regreso|vuelta/i);
 
-    // STEP 3
-    this.destinationField = page.getByRole(
-      'combobox',
-      {
+    this.destinationField =
+      page.getByRole('combobox', {
         name: 'Destination',
-      }
-    );
+      });
 
-    // STEP 4
-    this.departureButton = page.getByRole(
-      'button',
-      {
-        name: 'Departure',
-      }
-    );
-
-    // STEP 5
-    this.passengersButton = page.getByRole(
-      'button',
-      {
+    this.passengersButton =
+      page.getByRole('button', {
         name: 'Select passengers',
-      }
-    );
+      });
 
     this.increaseAdultsButton =
       page.getByRole('button', {
         name: 'Increase',
       }).first();
 
-    // STEP 6
     this.confirmPassengersButton =
       page.getByRole('button', {
         name: 'Confirm',
       });
 
-    this.searchButton = page.getByRole(
-      'button',
-      {
+    this.searchButton =
+      page.getByRole('button', {
         name: 'Search',
-      }
-    );
+      });
   }
 
   async goto(): Promise<void> {
@@ -90,114 +58,46 @@ export class HomePage {
     await this.page.waitForLoadState(
       'domcontentloaded'
     );
-
-    await this.page.waitForTimeout(3000);
   }
 
   async acceptCookiesIfPresent(): Promise<void> {
     try {
 
-      const cookieButton = this.page
+      await this.page
         .getByRole('button')
         .filter({
           hasText: /accept|aceptar/i,
         })
-        .first();
-
-      await cookieButton.click();
-
-      console.log(
-        'Cookie banner accepted'
-      );
+        .first()
+        .click();
 
     } catch {
-
-      console.log(
-        'Cookie banner not displayed'
-      );
+      // Cookie banner not displayed
     }
   }
 
   async configureUsdEnvironment(): Promise<void> {
-
     await this.acceptCookiesIfPresent();
-
-    await this.page.waitForTimeout(
-      2000
-    );
-
-    await this.countryLanguage
-      .changeToUnitedStates();
+    await this.countryLanguage.changeToUnitedStates();
   }
-
-  // ==========================
-  // STEP 2
-  // ==========================
 
   async selectOneWay(): Promise<void> {
 
-    console.log(
-      'Selecting One Way'
-    );
+    await this.oneWayOption.click();
 
     await expect(
       this.oneWayOption
-    ).toBeVisible();
-
-    await this.oneWayOption.click();
-
-    await this.validateOneWaySelected();
-
-    await this.validateReturnFieldNotDisplayed();
-  }
-
-  async validateOneWaySelected(): Promise<void> {
-
-    const text =
-      await this.oneWayOption.textContent();
-
-    console.log(
-      `Selected trip type: ${text}`
-    );
-
-    expect(
-      ['One way', 'Solo ida']
-    ).toContain(
-      text?.trim()
-    );
-
-    console.log(
-      'One Way validated'
-    );
-  }
-
-  async validateReturnFieldNotDisplayed(): Promise<void> {
+    ).toContainText(/one way|solo ida/i);
 
     await expect(
       this.returnField
     ).toHaveCount(0);
-
-    console.log(
-      'Return field validation completed'
-    );
   }
-
-  // ==========================
-  // STEP 3
-  // ==========================
 
   async selectDestination(
     searchText: string,
     optionName: string
   ): Promise<void> {
-
-    console.log(
-      `Selecting destination: ${optionName}`
-    );
-
-    await expect(
-      this.destinationField
-    ).toBeVisible();
 
     await this.destinationField.click();
 
@@ -205,178 +105,56 @@ export class HomePage {
       searchText
     );
 
-    const destinationOption =
-      this.page.getByRole('option', {
+    await this.page
+      .getByRole('option', {
         name: optionName,
-      });
+      })
+      .click();
 
     await expect(
-      destinationOption
-    ).toBeVisible();
-
-    await destinationOption.click();
-
-    await this.validateDestinationSelected(
-      searchText
+      this.destinationField
+    ).toHaveValue(
+      new RegExp(searchText, 'i')
     );
   }
-
-  async validateDestinationSelected(
-    expectedDestination: string
-  ): Promise<void> {
-
-    const destinationValue =
-      await this.destinationField.inputValue();
-
-    console.log(
-      `Destination field value: ${destinationValue}`
-    );
-
-    expect(
-      destinationValue.toLowerCase()
-    ).toContain(
-      expectedDestination.toLowerCase()
-    );
-
-    console.log(
-      'Destination validated'
-    );
-  }
-
-  // ==========================
-  // STEP 4
-  // ==========================
 
   async selectDepartureDate(): Promise<void> {
 
-    console.log(
-      'Selecting departure date'
-    );
-
-    const availableDates = this.page.locator(
-      'button[data-name="dayCell"][aria-disabled="false"]'
-    );
-
-    const totalDates =
-      await availableDates.count();
-
-    console.log(
-      `Available dates found: ${totalDates}`
-    );
-
-    if (totalDates === 0) {
-
-      throw new Error(
-        'No available departure dates found'
+    const availableDates =
+      this.page.locator(
+        'button[data-name="dayCell"][aria-disabled="false"]'
       );
-    }
 
-    const selectedDate =
-      await availableDates
-        .nth(1)
-        .getAttribute('data-date');
-
-    console.log(
-      `Selected date: ${selectedDate}`
-    );
+    await expect(
+      availableDates.nth(1)
+    ).toBeVisible();
 
     await availableDates.nth(1).click();
-
-    console.log(
-      'Departure date validated'
-    );
   }
-
-  // ==========================
-  // STEP 5
-  // ==========================
 
   async selectAdults(
     targetAdults: number
   ): Promise<void> {
 
-    console.log(
-      `Selecting ${targetAdults} adults`
-    );
-
-    await expect(
-      this.increaseAdultsButton
-    ).toBeVisible();
-
-    let currentAdults = 1;
-
-    while (currentAdults < targetAdults) {
+    for (
+      let currentAdults = 1;
+      currentAdults < targetAdults;
+      currentAdults++
+    ) {
 
       await this.increaseAdultsButton.click();
-
-      currentAdults++;
-
-      console.log(
-        `Adults selected: ${currentAdults}`
-      );
     }
 
-    await this.confirmPassengers();
-
-    await this.validateAdultsSelected(
-      targetAdults
-    );
-  }
-
-  async confirmPassengers(): Promise<void> {
-
-    console.log(
-      'Confirming passenger selection'
-    );
+    await this.confirmPassengersButton.click();
 
     await expect(
-      this.confirmPassengersButton
-    ).toBeVisible();
-
-    await this.confirmPassengersButton.click();
-  }
-
-  async validateAdultsSelected(
-    expectedAdults: number
-  ): Promise<void> {
-
-    const passengersText =
-      await this.passengersButton.textContent();
-
-    console.log(
-      `Passengers selector: ${passengersText}`
-    );
-
-    expect(
-      passengersText
-    ).toContain(
-      expectedAdults.toString()
-    );
-
-    console.log(
-      `${expectedAdults} adults validated`
+      this.passengersButton
+    ).toContainText(
+      targetAdults.toString()
     );
   }
-
-  // ==========================
-  // STEP 6
-  // ==========================
 
   async searchFlights(): Promise<void> {
-
-    console.log(
-      'Searching flights'
-    );
-
-    await expect(
-      this.searchButton
-    ).toBeVisible();
-
-    await expect(
-      this.searchButton
-    ).toBeEnabled();
-
-    await this.searchButton.scrollIntoViewIfNeeded();
 
     await this.searchButton.click();
 
@@ -384,12 +162,10 @@ export class HomePage {
       'networkidle'
     );
 
-    console.log(
-      `Current URL: ${this.page.url()}`
-    );
-
-    console.log(
-      'Flight search triggered successfully'
+    expect(
+      this.page.url()
+    ).toContain(
+      'booking/avail'
     );
   }
 }

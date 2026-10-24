@@ -112,10 +112,27 @@ npx playwright test --headed --workers=1
 ```
 
 ### Run a specific test:
-Booking flow: npx playwright test tests/booking.spec.ts
-Passenger limits: npx playwright test tests/passenger-limits.spec.ts
-Round Trip / One Way validation: npx playwright test tests/roundtrip-oneway-validation.spec.ts
-Locale validation: npx playwright test tests/locale.spec.ts
+
+#### Booking flow: 
+
+```bash
+npx playwright test tests/booking.spec.ts
+```
+
+#### Passenger limits: 
+```bash
+npx playwright test tests/passenger-limits.spec.ts
+```
+
+#### Round Trip / One Way validation: 
+```bash
+npx playwright test tests/roundtrip-oneway-validation.spec.ts
+```
+
+#### Locale validation: 
+```bash
+npx playwright test tests/locale.spec.ts
+```
 
 ### Open Playwright UI
 

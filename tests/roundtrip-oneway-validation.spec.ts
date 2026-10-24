@@ -12,54 +12,46 @@ test.describe(
         const homePage = new HomePage(page);
 
         await homePage.goto();
-
         await homePage.configureUsdEnvironment();
 
-        //
-        // STEP 1
-        // Validate Round Trip by default
-        //
-
-        const roundTripOption =
-        page.getByRole(
-            'radio',
-            {
+        const roundTripOption = page.getByRole(
+          'radio',
+          {
             name: 'Round trip',
-            }
+          }
         );
+
+        const returnField = page.getByRole(
+          'button',
+          {
+            name: /return/i,
+          }
+        );
+
+        const destinationField = page.getByRole(
+          'combobox',
+          {
+            name: 'Destination',
+          }
+        );
+
+        // Validate Round Trip by default
 
         await expect(
           roundTripOption
         ).toBeVisible();
 
-        //
-        // STEP 2
         // Open Return calendar
-        //
-
-        const returnField =
-          page.getByRole(
-            'button',
-            {
-              name: /return/i,
-            }
-          );
 
         await returnField.click();
 
-        const calendarDays =
+        await expect(
           page.locator(
             'button[data-name="dayCell"]'
-          );
-
-        await expect(
-          calendarDays.first()
+          ).first()
         ).toBeVisible();
 
-        //
-        // STEP 3
         // Switch to One Way
-        //
 
         await homePage.selectOneWay();
 
@@ -69,10 +61,7 @@ test.describe(
           )
         ).toHaveCount(0);
 
-        //
-        // STEP 4
         // Switch back to Round Trip
-        //
 
         await roundTripOption.click();
 
@@ -80,18 +69,7 @@ test.describe(
           returnField
         ).toBeVisible();
 
-        //
-        // STEP 5
-        // Open destination dropdown
-        //
-
-        const destinationField =
-          page.getByRole(
-            'combobox',
-            {
-              name: 'Destination',
-            }
-          );
+        // Destination selection
 
         await destinationField.click();
 
@@ -99,22 +77,16 @@ test.describe(
           destinationField
         ).toBeVisible();
 
-        //
-        // STEP 6
-        // Select Buenos Aires EZE
-        //
-
         await destinationField.fill(
           'Buenos Aires'
         );
 
-        const ezeOption =
-          page.getByRole(
-            'option',
-            {
-              name: /Buenos Aires.*EZE/i,
-            }
-          );
+        const ezeOption = page.getByRole(
+          'option',
+          {
+            name: /Buenos Aires.*EZE/i,
+          }
+        );
 
         await expect(
           ezeOption
@@ -122,30 +94,22 @@ test.describe(
 
         await ezeOption.click();
 
-        const destinationValue =
-          await destinationField.inputValue();
-
-        expect(
-          destinationValue
-            .toLowerCase()
-        ).toContain(
-          'buenos aires'
+        await expect(
+          destinationField
+        ).toHaveValue(
+          /Buenos Aires/i
         );
 
-        //
-        // STEP 7
-        // Search without dates
-        //
+        // Search without selecting dates
 
-        const searchButton =
-          page.getByRole(
+        await page
+          .getByRole(
             'button',
             {
               name: 'Search',
             }
-          );
-
-        await searchButton.click();
+          )
+          .click();
 
         const requiredMessages =
           page.getByText(
@@ -156,15 +120,8 @@ test.describe(
           requiredMessages.first()
         ).toBeVisible();
 
-        //
-        // Validate two Required messages
-        //
-
-        const requiredCount =
-          await requiredMessages.count();
-
         expect(
-          requiredCount
+          await requiredMessages.count()
         ).toBeGreaterThanOrEqual(2);
 
       }

@@ -24,7 +24,6 @@ export class CountryLanguageComponent {
 
   async open(): Promise<void> {
     await this.waitForSelectorButton();
-
     await this.selectorButton.click();
   }
 
